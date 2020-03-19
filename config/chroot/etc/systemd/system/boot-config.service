@@ -1,0 +1,6 @@
+[Service]
+Type=idle
+ExecStart=/usr/local/sbin/boot-config
+
+[Install]
+WantedBy=multi-user.target

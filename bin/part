@@ -1,0 +1,65 @@
+#!/bin/sh
+
+set -eu
+
+uuid=${1:-$(cat /proc/sys/kernel/random/uuid|head --bytes 13)}
+
+range=$(lsblk -I 8 -dn -o name)
+nb=$(echo "${range}"|wc -l)
+
+printf "Choose a ROOT disk :\n"
+echo "${range}"|nl
+
+choose_disk() {
+    printf "Your choice: "
+    read choice
+    # test if $choice is an integer and not equal to 0
+    [ $choice -eq 0 ] 2>/dev/null && choose_disk
+    [ $? -eq 0 -o $? -eq 1 ] || choose_disk
+    # test if $choice is not superior to nb of choice
+    [ $choice -gt $nb ] && choose_disk
+    name=$(echo "${range}"|sed -n "${choice}p")
+    disk="/dev/${name}"
+    [ -b "${disk}" ] || {
+        echo "${disk} is not a valid block device !"
+        exit 1
+    }
+    printf "\nWARNING!\n========\nThis will overwrite data on ${disk} irrevocably.\n\nAre you sure? (Type uppercase yes): "
+    read confirm
+    [ "${confirm}" = "YES" ] && {
+        parted -s "${disk}" mklabel gpt
+        parted -a minimal -s "${disk}" mkpart ESP fat32 1MiB 513MiB
+        parted -s "${disk}" name 1 "${uuid}-EFI"
+        parted -s "${disk}" set 1 boot on
+        parted -s "${disk}" set 1 bios_grub on
+        parted -a minimal -s "${disk}" mkpart primary ext4 513MiB 1025MiB
+        parted -s "${disk}" name 2 "${uuid}-BOOT"
+        parted -a minimal -s "${disk}" mkpart primary btrfs 1026MiB 100%
+        parted -s "${disk}" name 3 "${uuid}-ROOTFS"
+        partprobe
+        mkfs.fat -F32 "/dev/disk/by-partlabel/${uuid}-EFI"
+        yes | mkfs.ext4 "/dev/disk/by-partlabel/${uuid}-BOOT"
+        mkfs.btrfs -f "/dev/disk/by-partlabel/${uuid}-ROOTFS"
+        mount "/dev/disk/by-partlabel/${uuid}-ROOTFS" /mnt
+        btrfs subvolume create /mnt/etc
+        btrfs subvolume create /mnt/opt
+        btrfs subvolume create /mnt/root
+        btrfs subvolume create /mnt/srv
+        btrfs subvolume create /mnt/usr
+        btrfs subvolume create /mnt/usr/local
+        btrfs subvolume create /mnt/var
+        mount -o X-mount.mkdir=0755 "/dev/disk/by-partlabel/${uuid}-BOOT" /mnt/boot
+        mount -o X-mount.mkdir=0755 "/dev/disk/by-partlabel/${uuid}-EFI" /mnt/boot/EFI
+	grub-install --recheck --no-floppy "${disk}" --boot-directory /mnt/boot 
+	cat > /mnt/etc/fstab <<EOF
+/dev/disk/by-partlabel/${uuid}-ROOTFS   /               btrfs   defaults                                     			0       1
+/dev/disk/by-partlabel/${uuid}-BOOT     /boot           ext4    defaults                                               		0       1
+/dev/disk/by-partlabel/${uuid}-EFI      /boot/efi       vfat    umask=0077                                                      0       1
+tmpfs                         		/tmp            tmpfs   defaults,noatime,nosuid,nodev,noexec,mode=1777,size=1024m       0       0
+EOF
+        umount -R /mnt
+    } || exit 1
+    exit 0
+}
+
+choose_disk

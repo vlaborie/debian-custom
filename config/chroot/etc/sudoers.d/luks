@@ -1,0 +1,3 @@
+%sudo   ALL=(ALL:ALL)   NOPASSWD: /usr/sbin/cryptsetup
+%sudo   ALL=(ALL:ALL)   NOPASSWD: /usr/bin/mount
+%sudo   ALL=(ALL:ALL)   NOPASSWD: /usr/bin/umount

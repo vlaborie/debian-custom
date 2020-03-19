@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Start wpa_supplicant for first found Wifi interface 
+find /sys/class/net -follow -maxdepth 2 -name wireless 2>/dev/null | cut -d / -f 5 | while read wlan; do
+    ln -s /etc/wpa_supplicant/wpa_supplicant.conf "/etc/wpa_supplicant/wpa_supplicant-${wlan}.conf"
+    systemctl start "wpa_supplicant@${wlan}"
+    break
+done

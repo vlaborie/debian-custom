@@ -1,0 +1,3 @@
+Package: wireguard wireguard-dkms wireguard-modules wireguard-tools
+Pin: release n=buster-backports
+Pin-Priority: 999

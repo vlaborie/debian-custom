@@ -1,0 +1,2 @@
+%sudo   ALL=(ALL:ALL)   NOPASSWD: /usr/sbin/openvpn
+%sudo   ALL=(ALL:ALL)   NOPASSWD: /usr/bin/wg-quick

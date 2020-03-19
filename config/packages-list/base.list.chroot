@@ -1,0 +1,17 @@
+btrfs-progs
+cryptsetup-bin
+dbus
+dbus-user-session
+dnscrypt-proxy
+dosfstools
+libnss-systemd
+libpam-mount-bin
+linux-image-amd64
+mtools
+parted
+policykit-1
+sudo
+unattended-upgrades
+vim-nox
+wireguard
+wpasupplicant
