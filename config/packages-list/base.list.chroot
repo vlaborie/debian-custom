@@ -12,6 +12,7 @@ parted
 policykit-1
 sudo
 unattended-upgrades
+upower
 vim-nox
 wireguard
 wpasupplicant
