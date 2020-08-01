@@ -63,7 +63,7 @@ part:
 	bin/part $(UUID)
 
 chroot: cleanchroot cache/debootstrap.tar.gz
-	debootstrap --unpack-tarball=$(PWD)/cache/debootstrap.tar.gz buster cache/chroot $(DEBIAN_REPO)
+	debootstrap --unpack-tarball=$(PWD)/cache/debootstrap.tar.gz bullseye cache/chroot $(DEBIAN_REPO)
 	rsync -a --no-owner --no-group --chmod=u=rwX,go=rX config/chroot/ cache/chroot/
 	rsync -a --no-owner --no-group --chmod=u=rwX,go=rX ./ cache/chroot/root/ --exclude=cache/* --exclude=output/*
 	echo "$(UID)" > cache/chroot/etc/hostname
@@ -86,7 +86,7 @@ chroot: cleanchroot cache/debootstrap.tar.gz
 	mountpoint -q cache/chroot/dev && umount cache/chroot/dev || true
 
 cache/debootstrap.tar.gz:
-	debootstrap --merged-usr --make-tarball=cache/debootstrap.tar.gz --include=locales,ca-certificates buster cache/debootstrap $(DEBIAN_REPO)
+	debootstrap --merged-usr --make-tarball=cache/debootstrap.tar.gz --include=locales,ca-certificates bullseye cache/debootstrap $(DEBIAN_REPO)
 
 cleanchroot:
 	mountpoint -q cache/chroot/proc && umount cache/chroot/proc || true
